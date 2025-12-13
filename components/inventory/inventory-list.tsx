@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { Package, Upload, Search, Cpu, Zap, CircuitBoard, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -133,38 +134,40 @@ export function InventoryList() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {components.map((component) => (
-          <Card key={component.id} className="transition-all hover:shadow-lg hover:border-primary/50">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-base font-mono">{component.partNumber}</CardTitle>
-                  <CardDescription>{component.manufacturer}</CardDescription>
-                </div>
-                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                  {component.category}
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-3">{component.description}</p>
-              <div className="flex flex-wrap gap-2">
-                {component.specs.map((spec, idx) => (
-                  <span
-                    key={`${spec.name}-${idx}`}
-                    className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs"
-                  >
-                    <span className="text-muted-foreground">{spec.name}:</span>
-                    <span className="ml-1 font-medium">{spec.value}</span>
+          <Link key={component.id} href={`/inventory/${component.id}`} className="block">
+            <Card className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/50">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-base font-mono">{component.partNumber}</CardTitle>
+                    <CardDescription>{component.manufacturer}</CardDescription>
+                  </div>
+                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                    {component.category}
                   </span>
-                ))}
-              </div>
-              {component.sourceFile && (
-                <p className="mt-3 text-xs text-muted-foreground truncate">
-                  Source: {component.sourceFile}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-3">{component.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {component.specs.map((spec, idx) => (
+                    <span
+                      key={`${spec.name}-${idx}`}
+                      className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs"
+                    >
+                      <span className="text-muted-foreground">{spec.name}:</span>
+                      <span className="ml-1 font-medium">{spec.value}</span>
+                    </span>
+                  ))}
+                </div>
+                {component.sourceFile && (
+                  <p className="mt-3 text-xs text-muted-foreground truncate">
+                    Source: {component.sourceFile}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
     </div>

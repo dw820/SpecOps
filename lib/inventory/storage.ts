@@ -75,3 +75,27 @@ export async function getComponents(): Promise<ComponentData[]> {
   const inventory = await readInventory();
   return inventory.components;
 }
+
+/**
+ * Get a single component by ID
+ */
+export async function getComponentById(id: string): Promise<ComponentData | null> {
+  const inventory = await readInventory();
+  return inventory.components.find((c) => c.id === id) || null;
+}
+
+/**
+ * Delete a component by ID
+ */
+export async function deleteComponent(id: string): Promise<boolean> {
+  const inventory = await readInventory();
+  const initialLength = inventory.components.length;
+  inventory.components = inventory.components.filter((c) => c.id !== id);
+  
+  if (inventory.components.length === initialLength) {
+    return false; // Component not found
+  }
+  
+  await writeInventory(inventory);
+  return true;
+}
