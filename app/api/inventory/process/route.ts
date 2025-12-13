@@ -32,6 +32,14 @@ Standardize units where possible (e.g., convert all DCR to Ohms or keep as liste
 
 Capture Unique/Dynamic Info: Since datasheets differ, capture any non-standard columns (e.g., "Q Factor", "Self Resonant Frequency", "Thickness") in an additional_specs key.
 
+Generate 3D Model Code:
+For each component, generate a snippet of Three.js (JavaScript) code to visualize the component 3D model.
+- The code should assume a 'THREE' global object exists.
+- Create a geometry and material that best represents the component based on its physical dimensions (Length, Width, Height/Thickness). Defaults to mm units.
+- Use simple primitives like THREE.BoxGeometry or THREE.CylinderGeometry.
+- Assign the final mesh object to a variable named 'mesh'.
+- Example: "const geometry = new THREE.BoxGeometry(1.0, 0.5, 0.5); const material = new THREE.MeshStandardMaterial({color: 0x333333}); const mesh = new THREE.Mesh(geometry, material);"
+
 JSON Output Schema: Please output ONLY valid JSON using this structure:
 
 JSON
@@ -67,7 +75,7 @@ JSON
       "tolerance": "String"
     }
   ],
-  "products": [
+  "components": [
     {
       "part_number": "String (Primary Key)",
       "impedance_ohms": "Number or String",
@@ -75,6 +83,7 @@ JSON
       "test_frequency_mhz": "Number or String",
       "dc_resistance_max": "String",
       "rated_current_ma": "String",
+      "threeJsCode": "String (The Three.js code snippet)",
       "additional_specs": {
         "key": "value"
       }

@@ -16,6 +16,7 @@ export const ComponentSchema = z.object({
   category: z.string(),
   description: z.string(),
   specs: z.array(SpecSchema),
+  threeJsCode: z.string().optional(),
   sourceFile: z.string().optional(),
   extractedAt: z.string().optional(),
 });
@@ -29,6 +30,7 @@ export const ExtractedComponentSchema = z.object({
   category: z.string().describe('Component category (e.g., "Ferrite Bead", "Capacitor", "Resistor")'),
   description: z.string().describe('Brief description of the component'),
   specs: z.array(SpecSchema).describe('Key specifications as name-value pairs'),
+  threeJsCode: z.string().optional().describe('Generated Three.js code to visualize the component in 3D'),
 });
 
 export type ExtractedComponent = z.infer<typeof ExtractedComponentSchema>;
