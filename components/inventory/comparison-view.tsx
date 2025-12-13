@@ -2,6 +2,7 @@
 
 import { Check, X, Box, Layers, Code, FileText, Ruler } from 'lucide-react';
 import type { ComponentData, Spec } from '@/lib/inventory';
+import { MultiComponentViewer3D } from '@/components/inventory/multi-component-viewer-3d';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -140,35 +141,31 @@ export function ComparisonView({ components }: ComparisonViewProps) {
           </div>
         )}
 
-        {/* 3D Code Section (if any have it) */}
+        {/* Visual Comparison Section */}
         {components.some(c => c.threeJsCode) && (
-          <>
-            <div className="col-span-full border-t border-b bg-muted/20 p-2 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2 mt-4">
-              <Code className="h-3.5 w-3.5" />
-              3D Model Code
+          <div className="col-span-full border-t">
+            <div className="bg-muted/20 p-2 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+              <Box className="h-3.5 w-3.5" />
+              Size Comparison
             </div>
             
-            <div className="p-4 font-medium text-sm text-muted-foreground border-r-0 flex items-center">
-               Generation Status
+            <div className="p-4 bg-muted/5 min-h-[400px]">
+              <MultiComponentViewer3D 
+                models={components
+                  .filter(c => c.threeJsCode)
+                  .map(c => ({
+                    id: c.id,
+                    code: c.threeJsCode || '',
+                    label: c.partNumber
+                  }))
+                } 
+                className="w-full h-[400px] bg-background shadow-xs border" 
+              />
+              <p className="text-center text-xs text-muted-foreground mt-2">
+                Models are displayed side-by-side (Left to Right based on columns above)
+              </p>
             </div>
-            {components.map((comp, i) => (
-              <div key={`${comp.id}-3d`} className="border-l text-sm">
-                <div className="p-4 h-full flex items-center">
-                   {comp.threeJsCode ? (
-                     <Badge variant="secondary" className="gap-1 text-green-600 bg-green-500/10 hover:bg-green-500/20">
-                       <Check className="h-3 w-3" />
-                       Generated
-                     </Badge>
-                   ) : (
-                     <Badge variant="outline" className="gap-1 text-muted-foreground">
-                       <X className="h-3 w-3" />
-                       None
-                     </Badge>
-                   )}
-                </div>
-              </div>
-            ))}
-          </>
+          </div>
         )}
       </div>
     </div>

@@ -76,7 +76,7 @@ function ComparePageContent() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="flex h-16 items-center px-6">
           <Button variant="ghost" size="sm" asChild className="mr-4 gap-2">
             <Link href="/inventory">
