@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { ComponentData } from '@/lib/inventory';
+import { ComponentViewer3D } from '@/components/inventory/component-viewer-3d';
 
 export default function ComponentDetailPage() {
   const params = useParams();
@@ -92,16 +93,100 @@ export default function ComponentDetailPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <Button variant="ghost" onClick={() => router.push('/inventory')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Inventory
-        </Button>
+    <div className="flex flex-1 flex-col p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button variant="outline" size="icon" onClick={() => router.push('/inventory')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{component.partNumber}</h1>
+            <p className="text-muted-foreground">{component.manufacturer}</p>
+          </div>
+        </div>
         <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} disabled={isDeleting}>
           <Trash2 className="mr-2 h-4 w-4" />
-          {isDeleting ? 'Deleting...' : 'Delete Component'}
+          {isDeleting ? 'Deleting...' : 'Delete'}
         </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content - Left Column */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Specifications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {component.specs.map((spec, idx) => (
+                  <div key={`${spec.name}-${idx}`} className="flex flex-col space-y-1 p-3 rounded-md border bg-muted/5">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {spec.name}
+                    </span>
+                    <span className="font-medium">{spec.value}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Description</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="leading-relaxed">{component.description}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar - Right Column */}
+        <div className="space-y-6">
+          {/* 3D Model Viewer */}
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between">
+                <span>3D Visualization</span>
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                  {component.category}
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+               <ComponentViewer3D code={component.threeJsCode} className="h-[300px] w-full border-none rounded-none" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Metadata</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div className="flex justify-between py-2 border-b">
+                <span className="text-muted-foreground">Category</span>
+                <span className="font-medium">{component.category}</span>
+              </div>
+              {component.sourceFile && (
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-muted-foreground">Source File</span>
+                  <span className="font-medium truncate max-w-[150px]" title={component.sourceFile}>
+                    {component.sourceFile}
+                  </span>
+                </div>
+              )}
+              {component.extractedAt && (
+                <div className="flex justify-between py-2">
+                  <span className="text-muted-foreground">Extracted</span>
+                  <span className="font-medium">
+                    {new Date(component.extractedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Delete Confirmation Dialog */}
@@ -124,60 +209,6 @@ export default function ComponentDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-2xl font-mono">{component.partNumber}</CardTitle>
-              <p className="text-muted-foreground">{component.manufacturer}</p>
-            </div>
-            <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-              {component.category}
-            </span>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Description</h3>
-            <p>{component.description}</p>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Specifications</h3>
-            <div className="flex flex-wrap gap-2">
-              {component.specs.map((spec, idx) => (
-                <span
-                  key={`${spec.name}-${idx}`}
-                  className="inline-flex items-center rounded-md bg-muted px-3 py-1.5 text-sm"
-                >
-                  <span className="text-muted-foreground">{spec.name}:</span>
-                  <span className="ml-1 font-medium">{spec.value}</span>
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {component.sourceFile && (
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Source</h3>
-              <p className="text-sm">{component.sourceFile}</p>
-            </div>
-          )}
-
-          {component.extractedAt && (
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Extracted At</h3>
-              <p className="text-sm">{new Date(component.extractedAt).toLocaleString()}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Placeholder for future detail content */}
-      <div className="mt-6 rounded-lg border border-dashed border-muted-foreground/25 p-8 text-center">
-        <p className="text-muted-foreground">Additional details coming soon...</p>
-      </div>
     </div>
   );
 }
