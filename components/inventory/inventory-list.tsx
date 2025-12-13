@@ -1,26 +1,38 @@
 'use client';
 
+import { useState } from 'react';
 import { Package, Upload, Search, Cpu, Zap, CircuitBoard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { UploadDialog, type UploadedFile } from './upload-dialog';
 
-// Mock data - will be populated later with actual components
-const components: {
+export type ComponentData = {
   id: string;
   partNumber: string;
   manufacturer: string;
   category: string;
   description: string;
   specs: Record<string, string>;
-}[] = [];
+};
 
 export function InventoryList() {
+  const [components, setComponents] = useState<ComponentData[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+
+  const handleUploadComplete = (files: UploadedFile[]) => {
+    setUploadedFiles((prev) => [...prev, ...files]);
+    
+    // TODO: In the future, this is where we'll call the API to process PDFs
+    // and receive structured component data from Gemini 3
+    console.log('Files uploaded:', files);
+  };
+
   if (components.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-8">
         <div className="relative mb-8">
-          <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-primary/20 via-purple-500/20 to-blue-500/20 blur-xl" />
-          <div className="relative flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-purple-500/10 border border-primary/20">
+          <div className="absolute -inset-4 rounded-full bg-linear-to-r from-primary/20 via-purple-500/20 to-blue-500/20 blur-xl" />
+          <div className="relative flex h-24 w-24 items-center justify-center rounded-2xl bg-linear-to-br from-primary/10 to-purple-500/10 border border-primary/20">
             <CircuitBoard className="h-12 w-12 text-primary" />
           </div>
         </div>
@@ -32,15 +44,24 @@ export function InventoryList() {
         </p>
         
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button size="lg" className="gap-2">
-            <Upload className="h-4 w-4" />
-            Upload Datasheet
-          </Button>
+          <UploadDialog onUploadComplete={handleUploadComplete}>
+            <Button size="lg" className="gap-2">
+              <Upload className="h-4 w-4" />
+              Upload Datasheet
+            </Button>
+          </UploadDialog>
           <Button variant="outline" size="lg" className="gap-2">
             <Search className="h-4 w-4" />
             Learn More
           </Button>
         </div>
+
+        {/* Show uploaded files count if any */}
+        {uploadedFiles.length > 0 && (
+          <p className="mt-6 text-sm text-muted-foreground">
+            {uploadedFiles.length} datasheet{uploadedFiles.length !== 1 ? 's' : ''} uploaded — processing coming soon
+          </p>
+        )}
 
         <div className="mt-16 grid gap-6 sm:grid-cols-3 max-w-3xl">
           <FeatureCard
@@ -72,10 +93,12 @@ export function InventoryList() {
             {components.length} component{components.length !== 1 ? 's' : ''} indexed
           </p>
         </div>
-        <Button className="gap-2">
-          <Upload className="h-4 w-4" />
-          Upload Datasheet
-        </Button>
+        <UploadDialog onUploadComplete={handleUploadComplete}>
+          <Button className="gap-2">
+            <Upload className="h-4 w-4" />
+            Upload Datasheet
+          </Button>
+        </UploadDialog>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -132,3 +155,4 @@ function FeatureCard({
     </div>
   );
 }
+
