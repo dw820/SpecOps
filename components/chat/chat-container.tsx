@@ -32,11 +32,11 @@ export function ChatContainer({ className }: ChatContainerProps) {
   return (
     <div
       className={cn(
-        'flex h-screen flex-col bg-background',
+        'flex h-full flex-col bg-background',
         className
       )}
     >
-      <ChatHeader />
+      {/* <ChatHeader /> */}
       <ChatMessages messages={messages} status={status} />
       <ChatInput
         input={input}

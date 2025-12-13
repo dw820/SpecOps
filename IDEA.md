@@ -1,79 +1,62 @@
-# SpecOps
+Instead of relying on a "pre-baked" JSON database (which judges might think is faked), you are now showing off Gemini 3's ability to read complex engineering PDFs and "decode" industry part numbers in real-time.
 
-This hits the "Hard Tech" / "American Dynamism" theme perfectly because it addresses a real bottleneck: Supply Chain Complexity.
+Here is the Updated PRD for the SpecMatch: "Datasheet-First" Edition.
 
-New factories in the US are hiring junior engineers who don't have 20 years of experience knowing exactly which "Backplane Connector" is right. They need an AI that acts as a Senior Procurement Engineer.
+Project Name: SpecMatch (Datasheet Edition)
+Core Pivot: "No Database. Just Documents." Data Source: The actual PDF you uploaded (AGZ series...). Input: A raw competitor part number string (e.g., MPZ1608S600AT000).
 
-Here is a refined scope, project name, and execution plan to make this winnable in an 8-hour hackathon.
+1. The New Architecture: "Read & Decode"
+We replace the static JSON files with a 2-step Generative Pipeline.
 
-Project Name: "SpecSynth" (The Component Intelligence Engine)
-The Pitch: "As America reshores manufacturing, we face a knowledge gap. Junior engineers are drowning in PDFs. SpecSynth uses Gemini 3 to turn static, dense datasheets into interactive, visual intelligence, allowing procurement teams to source parts 10x faster."
+Side A: The "Inventory" (Your PDF)
+Instead of a CSV/JSON, the AI reads the AGZ Series PDF directly.
 
-The Scope (8-Hour Hackathon Version)
-Do not try to build a generic tool for all electronics. Focus deeply on one specific category (like the ARINC connectors in your screenshot).
+Task: The LLM must look at the "Electrical Characteristics" table in the PDF.
 
-Core Feature 1: The "Parametric Extractor" (The Wow Factor)
-Instead of trying to "generate a 3D image" from scratch (which often looks melty/bad), use Gemini to drive a Parametric 3D Model.
+Extraction: It builds a "Virtual Inventory" in memory by reading rows like AGZ1608W600-1A0 -> 60Ω, 1A.
 
-The Problem: Datasheets have tables of dimensions (Size A, Size B, Length C), but you can't visualize them mentally.
+Side B: The "Target" (The Competitor Code)
+We assume we don't have the competitor's datasheet. We only have their Part Number.
 
-The Gemini 3 Task: Feed the PDF drawing (like the Eaton one you shared) to Gemini.
+Task: Use Gemini 3's "World Knowledge" to decode the smart numbering scheme.
 
-The Prompt: "Look at the 'Dimensions' table on Page 3. Extract the values for 'L1', 'L2', and 'Diameter' for the specific part number '8MQ2S1M6B'. Output them as a JSON object."
+Example: MPZ1608S600AT000
 
-The Visual: Feed that JSON into a simple Three.js cylinder or box on your screen.
+1608 = Size 0603.
 
-The Demo: As you switch part numbers in the dropdown, the 3D shape on screen resizes instantly to match the real-world specs. This proves the AI "understands" the physical object.
+600 = 60 Ohms.
 
-Core Feature 2: "Battle Mode" (The Comparison Engine)
-The Problem: Why is Part A $1,900 and Part B $2,200? The screenshot shows huge price variances for similar items.
+A = Material Code / Current Rating characteristic.
 
-The Gemini 3 Task: Upload datasheets for two different items from your list.
+2. User Journey (The Updated Demo Flow)
+User: "Alex," looking for a TDK replacement. Context: He has no database, just a PDF from a vendor (Sunlord) he wants to use.
 
-The Prompt: "Compare Part 8MQ2S1M6B vs 8MQ2S1M6C. Identify the single technical specification difference that justifies the price gap. Is it plating material? Cycle life? Sealing?"
+Step 1: Ingest (The Setup)
 
-The Output: A simple "Tale of the Tape" card.
+Action: Alex uploads AGZ_series.pdf into the "Reference" slot.
 
-Result: "Part C is Sealed (IP67). Part B is Unsealed. Use Part C for high-moisture environments."
+SpecMatch UI: "Scanning Datasheet... Indexed 45 Components."
 
-Core Feature 3: The "Fit Check" (The Junior Engineer Shield)
-The Problem: Ordering the wrong part costs millions.
+Visual: Show a snippet of the table being highlighted.
 
-The Gemini 3 Task: Contextual Reasoning.
+Step 2: The Query
 
-The Scenario: You tell the chatbot: "I am building a drone that vibrates heavily and flies in rain. Can I use this connector?"
+Action: Alex types: "Find a replacement for TDK MPZ1608S600AT000"
 
-The Output: Gemini reads the "Environmental Specs" section of the PDF.
+SpecMatch (Internal Thought Process):
 
-Response: "RECOMMENDATION: NO. This specific part number is 'Unsealed' (see Page 1). You need the 'M0A' variant for waterproofing."
+Decoding TDK: "MPZ1608... means Size 0603 (1.6x0.8mm), Impedance 60Ω, High Current type."
 
-The Architecture (How to build it fast)
-Data Source (Pre-Hackathon Prep):
+Scanning PDF: "Looking for Size 1608 + 60Ω in the AGZ table..."
 
-Download 3-5 PDFs for the specific items in your screenshot (The "MQuick" series).
+Found: AGZ1608W600-2A0.
 
-Keep them in a local folder. Do not rely on live scraping.
+Step 3: The Result & "Diff"
 
-The Backend (Gemini 3):
+SpecMatch Output:
 
-Use the Gemini 1.5 Pro / Flash (preview of 3) API.
+Best Match: Sunlord AGZ1608W600-2A0
 
-System Prompt: "You are a Senior Electrical Component Engineer. Your job is to extract precise data from component datasheets and warn users about compatibility risks. diverse"
+Match Logic: "Both are 0603 Size and 60Ω."
 
-The Frontend (Streamlit or V0):
-
-Left Column: The list from your screenshot (clickable).
-
-Middle Column: The Chat/Analysis window ("Is this waterproof?").
-
-Right Column: The "Live Parametric View" (A simple box/cylinder that changes size based on the JSON Gemini extracts).
-
-Why this wins on "Reshoring"
-You aren't just building a chatbot. You are building "Infrastructure for the New American Factory."
-
-It solves the Labor Shortage: Helps junior employees make senior decisions.
-
-It solves Supply Chain Complexity: Decodes the "black box" of vendor part numbers.
-
-A "Contrarian" Twist for the Demo
-Start your demo by showing the confusing screenshot you just uploaded. Say: "This is what a procurement officer sees. It's a wall of text. It tells you nothing about which part to buy. SpecSynth turns this wall of text into this..." (Then reveal your 3D visualizer).
+The Upgrade (The Hook): "✅ Upgrade Found: The TDK part is rated for ~1A (Standard), but this Sunlord part found in the PDF is rated for 2A."
