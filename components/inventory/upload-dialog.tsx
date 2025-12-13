@@ -22,20 +22,23 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { ComponentData } from '@/lib/inventory';
 
 export type UploadedFile = {
   id: string;
   filename: string;
+  file: File; // Keep the original file for API upload
   url: string;
   size: number;
   status: 'pending' | 'processing' | 'completed' | 'error';
   progress: number;
   error?: string;
+  extractedCount?: number;
 };
 
 interface UploadDialogProps {
   children: React.ReactNode;
-  onUploadComplete?: (files: UploadedFile[]) => void;
+  onUploadComplete?: (components: ComponentData[]) => void;
 }
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
@@ -73,6 +76,7 @@ export function UploadDialog({ children, onUploadComplete }: UploadDialogProps) 
       newFiles.push({
         id: nanoid(),
         filename: file.name,
+        file: file, // Store the original file
         url: URL.createObjectURL(file),
         size: file.size,
         status: error ? 'error' : 'pending',
@@ -124,48 +128,98 @@ export function UploadDialog({ children, onUploadComplete }: UploadDialogProps) 
     e.target.value = '';
   }, [addFiles]);
 
-  const simulateProcessing = useCallback(async () => {
+  const processFiles = useCallback(async () => {
     setIsProcessing(true);
     
     const pendingFiles = files.filter((f) => f.status === 'pending');
+    const allExtractedComponents: ComponentData[] = [];
     
-    for (const file of pendingFiles) {
+    for (const uploadFile of pendingFiles) {
       // Update status to processing
       setFiles((prev) =>
         prev.map((f) =>
-          f.id === file.id ? { ...f, status: 'processing' as const, progress: 0 } : f
+          f.id === uploadFile.id ? { ...f, status: 'processing' as const, progress: 20 } : f
         )
       );
 
-      // Simulate progress
-      for (let progress = 0; progress <= 100; progress += 10) {
-        await new Promise((resolve) => setTimeout(resolve, 150));
+      try {
+        // Create FormData and send to API
+        const formData = new FormData();
+        formData.append('file', uploadFile.file);
+
+        // Update progress to show we're sending
         setFiles((prev) =>
           prev.map((f) =>
-            f.id === file.id ? { ...f, progress } : f
+            f.id === uploadFile.id ? { ...f, progress: 40 } : f
+          )
+        );
+
+        const response = await fetch('/api/inventory/process', {
+          method: 'POST',
+          body: formData,
+        });
+
+        // Update progress to show we're processing
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === uploadFile.id ? { ...f, progress: 80 } : f
+          )
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to process file');
+        }
+
+        const data = await response.json();
+        const extractedComponents = data.components as ComponentData[];
+        allExtractedComponents.push(...extractedComponents);
+
+        // Mark as completed
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === uploadFile.id 
+              ? { 
+                  ...f, 
+                  status: 'completed' as const, 
+                  progress: 100,
+                  extractedCount: extractedComponents.length,
+                } 
+              : f
+          )
+        );
+      } catch (error) {
+        // Mark as error
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === uploadFile.id 
+              ? { 
+                  ...f, 
+                  status: 'error' as const, 
+                  progress: 0,
+                  error: error instanceof Error ? error.message : 'Processing failed',
+                } 
+              : f
           )
         );
       }
-
-      // Mark as completed
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.id === file.id ? { ...f, status: 'completed' as const, progress: 100 } : f
-        )
-      );
     }
 
     setIsProcessing(false);
     
-    // Notify parent of completion
-    const completedFiles = files.filter((f) => f.status !== 'error');
-    onUploadComplete?.(completedFiles);
+    // Notify parent of extracted components
+    if (allExtractedComponents.length > 0) {
+      onUploadComplete?.(allExtractedComponents);
+    }
     
-    // Close dialog after a short delay
-    setTimeout(() => {
-      setOpen(false);
-      setFiles([]);
-    }, 500);
+    // Close dialog after a short delay if at least one file succeeded
+    const hasCompleted = files.some((f) => f.status === 'completed') || allExtractedComponents.length > 0;
+    if (hasCompleted) {
+      setTimeout(() => {
+        setOpen(false);
+        setFiles([]);
+      }, 1000);
+    }
   }, [files, onUploadComplete]);
 
   const formatFileSize = (bytes: number) => {
@@ -175,7 +229,6 @@ export function UploadDialog({ children, onUploadComplete }: UploadDialogProps) 
   };
 
   const pendingCount = files.filter((f) => f.status === 'pending').length;
-  const hasErrors = files.some((f) => f.status === 'error');
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -264,10 +317,12 @@ export function UploadDialog({ children, onUploadComplete }: UploadDialogProps) 
                       <span className="text-xs text-destructive">{file.error}</span>
                     )}
                     {file.status === 'processing' && (
-                      <span className="text-xs text-primary">Processing...</span>
+                      <span className="text-xs text-primary">Extracting components...</span>
                     )}
                     {file.status === 'completed' && (
-                      <span className="text-xs text-green-600">Complete</span>
+                      <span className="text-xs text-green-600">
+                        {file.extractedCount} component{file.extractedCount !== 1 ? 's' : ''} extracted
+                      </span>
                     )}
                   </div>
                   {file.status === 'processing' && (
@@ -309,7 +364,7 @@ export function UploadDialog({ children, onUploadComplete }: UploadDialogProps) 
             Cancel
           </Button>
           <Button
-            onClick={simulateProcessing}
+            onClick={processFiles}
             disabled={pendingCount === 0 || isProcessing}
             className="gap-2"
           >

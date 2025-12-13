@@ -1,31 +1,63 @@
 'use client';
 
-import { useState } from 'react';
-import { Package, Upload, Search, Cpu, Zap, CircuitBoard } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Package, Upload, Search, Cpu, Zap, CircuitBoard, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { UploadDialog, type UploadedFile } from './upload-dialog';
-
-export type ComponentData = {
-  id: string;
-  partNumber: string;
-  manufacturer: string;
-  category: string;
-  description: string;
-  specs: Record<string, string>;
-};
+import { UploadDialog } from './upload-dialog';
+import type { ComponentData } from '@/lib/inventory';
 
 export function InventoryList() {
   const [components, setComponents] = useState<ComponentData[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleUploadComplete = (files: UploadedFile[]) => {
-    setUploadedFiles((prev) => [...prev, ...files]);
-    
-    // TODO: In the future, this is where we'll call the API to process PDFs
-    // and receive structured component data from Gemini 3
-    console.log('Files uploaded:', files);
-  };
+  // Fetch components from API on mount
+  const fetchComponents = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch('/api/inventory');
+      if (!response.ok) {
+        throw new Error('Failed to fetch inventory');
+      }
+      const data = await response.json();
+      setComponents(data.components || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load inventory');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchComponents();
+  }, [fetchComponents]);
+
+  const handleUploadComplete = useCallback((newComponents: ComponentData[]) => {
+    // Add new components to state
+    setComponents((prev) => [...prev, ...newComponents]);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center p-8">
+        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+        <p className="mt-4 text-muted-foreground">Loading inventory...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center p-8">
+        <p className="text-destructive">{error}</p>
+        <Button variant="outline" onClick={fetchComponents} className="mt-4">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   if (components.length === 0) {
     return (
@@ -55,13 +87,6 @@ export function InventoryList() {
             Learn More
           </Button>
         </div>
-
-        {/* Show uploaded files count if any */}
-        {uploadedFiles.length > 0 && (
-          <p className="mt-6 text-sm text-muted-foreground">
-            {uploadedFiles.length} datasheet{uploadedFiles.length !== 1 ? 's' : ''} uploaded — processing coming soon
-          </p>
-        )}
 
         <div className="mt-16 grid gap-6 sm:grid-cols-3 max-w-3xl">
           <FeatureCard
@@ -93,12 +118,17 @@ export function InventoryList() {
             {components.length} component{components.length !== 1 ? 's' : ''} indexed
           </p>
         </div>
-        <UploadDialog onUploadComplete={handleUploadComplete}>
-          <Button className="gap-2">
-            <Upload className="h-4 w-4" />
-            Upload Datasheet
+        <div className="flex gap-2">
+          <Button variant="outline" size="icon" onClick={fetchComponents}>
+            <RefreshCw className="h-4 w-4" />
           </Button>
-        </UploadDialog>
+          <UploadDialog onUploadComplete={handleUploadComplete}>
+            <Button className="gap-2">
+              <Upload className="h-4 w-4" />
+              Upload Datasheet
+            </Button>
+          </UploadDialog>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -118,16 +148,21 @@ export function InventoryList() {
             <CardContent>
               <p className="text-sm text-muted-foreground mb-3">{component.description}</p>
               <div className="flex flex-wrap gap-2">
-                {Object.entries(component.specs).map(([key, value]) => (
+                {component.specs.map((spec, idx) => (
                   <span
-                    key={key}
+                    key={`${spec.name}-${idx}`}
                     className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs"
                   >
-                    <span className="text-muted-foreground">{key}:</span>
-                    <span className="ml-1 font-medium">{value}</span>
+                    <span className="text-muted-foreground">{spec.name}:</span>
+                    <span className="ml-1 font-medium">{spec.value}</span>
                   </span>
                 ))}
               </div>
+              {component.sourceFile && (
+                <p className="mt-3 text-xs text-muted-foreground truncate">
+                  Source: {component.sourceFile}
+                </p>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -155,4 +190,3 @@ function FeatureCard({
     </div>
   );
 }
-
