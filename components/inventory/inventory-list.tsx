@@ -12,6 +12,7 @@ export function InventoryList() {
   const [components, setComponents] = useState<ComponentData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Fetch components from API on mount
   const fetchComponents = useCallback(async () => {
@@ -39,6 +40,18 @@ export function InventoryList() {
     // Add new components to state
     setComponents((prev) => [...prev, ...newComponents]);
   }, []);
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) 
+        ? prev.filter(selectedId => selectedId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const clearSelection = () => {
+    setSelectedIds([]);
+  };
 
   if (isLoading) {
     return (
@@ -111,7 +124,7 @@ export function InventoryList() {
   }
 
   return (
-    <div className="flex flex-1 flex-col p-6">
+    <div className="flex flex-1 flex-col p-6 relative">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Component Inventory</h1>
@@ -132,44 +145,95 @@ export function InventoryList() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pb-20">
         {components.map((component) => (
-          <Link key={component.id} href={`/inventory/${component.id}`} className="block">
-            <Card className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/50">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-base font-mono">{component.partNumber}</CardTitle>
-                    <CardDescription>{component.manufacturer}</CardDescription>
-                  </div>
-                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                    {component.category}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-3">{component.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {component.specs.map((spec, idx) => (
-                    <span
-                      key={`${spec.name}-${idx}`}
-                      className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs"
-                    >
-                      <span className="text-muted-foreground">{spec.name}:</span>
-                      <span className="ml-1 font-medium">{spec.value}</span>
+          <div key={component.id} className="relative group">
+            <Link href={`/inventory/${component.id}`} className="block">
+              <Card 
+                className={`cursor-pointer transition-all hover:shadow-lg hover:border-primary/50 ${
+                  selectedIds.includes(component.id) ? 'ring-2 ring-primary border-primary' : ''
+                }`}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between pr-8">
+                    <div>
+                      <CardTitle className="text-base font-mono">{component.partNumber}</CardTitle>
+                      <CardDescription>{component.manufacturer}</CardDescription>
+                    </div>
+                    <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                      {component.category}
                     </span>
-                  ))}
-                </div>
-                {component.sourceFile && (
-                  <p className="mt-3 text-xs text-muted-foreground truncate">
-                    Source: {component.sourceFile}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </Link>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">{component.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {component.specs.map((spec, idx) => (
+                      <span
+                        key={`${spec.name}-${idx}`}
+                        className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs"
+                      >
+                        <span className="text-muted-foreground">{spec.name}:</span>
+                        <span className="ml-1 font-medium">{spec.value}</span>
+                      </span>
+                    ))}
+                  </div>
+                  {component.sourceFile && (
+                    <p className="mt-3 text-xs text-muted-foreground truncate">
+                      Source: {component.sourceFile}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </Link>
+            
+            <div 
+              className="absolute top-3 right-3 z-10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                type="checkbox"
+                className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer accent-primary"
+                checked={selectedIds.includes(component.id)}
+                onChange={() => toggleSelection(component.id)}
+              />
+            </div>
+          </div>
         ))}
       </div>
+
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-md bg-popover/95 backdrop-blur-sm border shadow-2xl rounded-2xl p-4 flex items-center justify-between z-50 animate-in slide-in-from-bottom-10 fade-in duration-300">
+          <div className="flex items-center gap-4">
+            <span className="font-medium text-sm">
+              {selectedIds.length} item{selectedIds.length !== 1 ? 's' : ''} selected
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearSelection}
+              className="text-muted-foreground hover:text-foreground h-8 px-2"
+            >
+              Clear
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              disabled={selectedIds.length < 2 || selectedIds.length > 3}
+              asChild={selectedIds.length >= 2 && selectedIds.length <= 3}
+            >
+              {selectedIds.length >= 2 && selectedIds.length <= 3 ? (
+                <Link href={`/inventory/compare?ids=${selectedIds.join(',')}`}>
+                  Compare
+                </Link>
+              ) : (
+                <span>{selectedIds.length < 2 ? 'Select at least 2' : 'Maximum 3 items'}</span>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
