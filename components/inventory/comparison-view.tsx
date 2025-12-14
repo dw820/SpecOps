@@ -6,7 +6,7 @@ import { MultiComponentViewer3D } from '@/components/inventory/multi-component-v
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { useMemo } from 'react';
+import { useMemo, Fragment } from 'react';
 
 interface ComparisonViewProps {
   components: ComponentData[];
@@ -119,8 +119,8 @@ export function ComparisonView({ components }: ComparisonViewProps) {
         {allSpecNames.map((specName) => {
           const isDifferent = !isSpecUniform(specName);
           return (
-            <>
-              <div key={`header-${specName}`} className="p-4 font-medium text-sm text-muted-foreground border-b border-r-0 flex items-center">
+            <Fragment key={specName}>
+              <div className="p-4 font-medium text-sm text-muted-foreground border-b border-r-0 flex items-center">
                 {specName}
               </div>
               {components.map((comp) => (
@@ -131,7 +131,7 @@ export function ComparisonView({ components }: ComparisonViewProps) {
                   )}
                 </div>
               ))}
-            </>
+            </Fragment>
           );
         })}
         
