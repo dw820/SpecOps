@@ -53,7 +53,7 @@ export function ChatInput({
   };
 
   return (
-    <div className={cn('border-t bg-background p-4', className)}>
+    <div className={cn('bg-background p-4', className)}>
       <div className="mx-auto max-w-3xl">
         <PromptInput
           onSubmit={handleSubmit}

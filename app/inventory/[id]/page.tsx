@@ -142,54 +142,56 @@ export default function ComponentDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Q&A Section */}
-          <ComponentQA component={component} />
+          {/* 3D Model and Metadata side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 3D Model Viewer */}
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between">
+                  <span>3D Visualization</span>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                    {component.category}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                 <ComponentViewer3D code={component.threeJsCode} className="h-[250px] w-full border-none rounded-none" />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Metadata</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-muted-foreground">Category</span>
+                  <span className="font-medium">{component.category}</span>
+                </div>
+                {component.sourceFile && (
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-muted-foreground">Source File</span>
+                    <span className="font-medium truncate max-w-[150px]" title={component.sourceFile}>
+                      {component.sourceFile}
+                    </span>
+                  </div>
+                )}
+                {component.extractedAt && (
+                  <div className="flex justify-between py-2">
+                    <span className="text-muted-foreground">Extracted</span>
+                    <span className="font-medium">
+                      {new Date(component.extractedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        {/* Sidebar - Right Column */}
-        <div className="space-y-6">
-          {/* 3D Model Viewer */}
-          <Card className="overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between">
-                <span>3D Visualization</span>
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                  {component.category}
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-               <ComponentViewer3D code={component.threeJsCode} className="h-[300px] w-full border-none rounded-none" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Metadata</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <div className="flex justify-between py-2 border-b">
-                <span className="text-muted-foreground">Category</span>
-                <span className="font-medium">{component.category}</span>
-              </div>
-              {component.sourceFile && (
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-muted-foreground">Source File</span>
-                  <span className="font-medium truncate max-w-[150px]" title={component.sourceFile}>
-                    {component.sourceFile}
-                  </span>
-                </div>
-              )}
-              {component.extractedAt && (
-                <div className="flex justify-between py-2">
-                  <span className="text-muted-foreground">Extracted</span>
-                  <span className="font-medium">
-                    {new Date(component.extractedAt).toLocaleDateString()}
-                  </span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        {/* Sidebar - Right Column: Chat Q&A */}
+        <div className="lg:sticky lg:top-6 lg:self-start">
+          <ComponentQA component={component} className="h-[calc(100vh-8rem)]" />
         </div>
       </div>
 

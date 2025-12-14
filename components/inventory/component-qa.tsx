@@ -36,7 +36,7 @@ export function ComponentQA({ component, className }: ComponentQAProps) {
   };
 
   return (
-    <Card className={cn('flex flex-col h-[600px]', className)}>
+    <Card className={cn('flex flex-col', className || 'h-[600px]')}>
       <CardHeader className="pb-3 border-b">
         <CardTitle className="flex items-center gap-2 text-lg">
           <MessageSquareText className="h-5 w-5 text-primary" />
@@ -49,16 +49,13 @@ export function ComponentQA({ component, className }: ComponentQAProps) {
           status={status} 
           className="flex-1 p-4"
         />
-        <div className="p-4 border-t bg-background">
-          <ChatInput
-            input={input}
-            setInput={setInput}
-            onSend={handleSendMessage}
-            status={status}
-            placeholder={`Ask a question about ${component.partNumber}...`}
-            className="border rounded-md"
-          />
-        </div>
+        <ChatInput
+          input={input}
+          setInput={setInput}
+          onSend={handleSendMessage}
+          status={status}
+          placeholder={`Ask a question about ${component.partNumber}...`}
+        />
       </CardContent>
     </Card>
   );
