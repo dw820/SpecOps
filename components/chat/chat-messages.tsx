@@ -62,6 +62,23 @@ export function ChatMessages({ className, messages, status }: ChatMessagesProps)
                       </Message>
                     );
                   }
+                  if (part.type === 'image') {
+                    return (
+                      <Message key={`${message.id}-${i}`} from={message.role}>
+                        <MessageContent>
+                          <MessageAttachments>
+                            <div className="group relative size-64 overflow-hidden rounded-lg">
+                              <img
+                                alt="Image"
+                                className="size-full object-cover"
+                                src={part.image instanceof URL ? part.image.toString() : part.image}
+                              />
+                            </div>
+                          </MessageAttachments>
+                        </MessageContent>
+                      </Message>
+                    );
+                  }
                   return null;
                 })}
               </div>

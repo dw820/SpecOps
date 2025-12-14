@@ -25,6 +25,7 @@ interface ChatInputProps {
   setInput: (value: string) => void;
   onSend: (message: { text?: string; files?: FileUIPart[] }) => void;
   status: 'submitted' | 'streaming' | 'ready' | 'error';
+  placeholder?: string;
 }
 
 export function ChatInput({
@@ -33,6 +34,7 @@ export function ChatInput({
   setInput,
   onSend,
   status,
+  placeholder,
 }: ChatInputProps) {
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
@@ -66,7 +68,7 @@ export function ChatInput({
           </PromptInputHeader>
           <PromptInputBody>
             <PromptInputTextarea
-              placeholder="Ask about component specifications..."
+              placeholder={placeholder || "Ask about component specifications..."}
               value={input}
               onChange={(e) => setInput(e.target.value)}
             />

@@ -1,5 +1,4 @@
-import { streamText, convertToModelMessages, type UIMessage } from 'ai';
-import { google } from '@ai-sdk/google';
+import { streamText, convertToModelMessages } from 'ai';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -31,9 +30,9 @@ export async function POST(req: Request) {
   const fullMessages = [systemMessage, ...modelMessages];
 
   const result = streamText({
-    model: google('gemini-1.5-pro-latest'),
-    messages: fullMessages as any, // Cast to any to avoid strict type checks on system message format if needed, though usually standard
+    model: 'google/gemini-3-pro-preview',
+    messages: fullMessages as any,
   });
 
-  return result.toDataStreamResponse();
+  return result.toUIMessageStreamResponse();
 }

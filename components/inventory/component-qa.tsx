@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChatMessages } from '@/components/chat/chat-messages';
 import { ChatInput } from '@/components/chat/chat-input';
@@ -14,19 +16,22 @@ interface ComponentQAProps {
 }
 
 export function ComponentQA({ component, className }: ComponentQAProps) {
-  const { messages, input, setInput, append, status } = useChat({
-    api: '/api/inventory/chat',
-    body: {
-      component,
-    },
+  const [input, setInput] = useState('');
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/inventory/chat',
+      body: {
+        component,
+      },
+    }),
   });
 
   const handleSendMessage = async (message: { text?: string; files?: any[] }) => {
     if (!message.text) return;
     
-    await append({
-      role: 'user',
-      content: message.text,
+    sendMessage({
+      text: message.text,
+      files: message.files,
     });
   };
 
