@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { ComponentData } from '@/lib/inventory';
+import { ComponentQA } from '@/components/inventory/component-qa';
 import { ComponentViewer3D } from '@/components/inventory/component-viewer-3d';
 
 export default function ComponentDetailPage() {
@@ -140,6 +141,9 @@ export default function ComponentDetailPage() {
               <p className="leading-relaxed">{component.description}</p>
             </CardContent>
           </Card>
+
+          {/* Q&A Section */}
+          <ComponentQA component={component} />
         </div>
 
         {/* Sidebar - Right Column */}
