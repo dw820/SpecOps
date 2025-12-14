@@ -29,6 +29,11 @@ const navItems = [
     url: '/inventory',
     icon: Package,
   },
+  {
+    title: 'Inventory Demo',
+    url: '/inventory-demo',
+    icon: Package,
+  },
 ];
 
 export function AppSidebar() {
